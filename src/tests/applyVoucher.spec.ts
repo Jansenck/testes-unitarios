@@ -47,6 +47,36 @@ describe("voucherService unitary tests", () => {
     });
   });
 
+  it("should apply discount to minimum value +1", async () => {
+    const amount = 101;
+    const voucher = {
+      id: 1,
+      code: "driven500",
+      discount: 15,
+      used: false,
+    };
+    const finalAmount = amount - ((amount/100) * voucher.discount);
+    const usedVoucher = {
+      ...voucher,
+      used: true,
+    };
+
+    jest
+      .spyOn(voucherRepository, "getVoucherByCode")
+      .mockImplementationOnce((): any => voucher);
+    jest
+      .spyOn(voucherRepository, "useVoucher")
+      .mockImplementationOnce((): any => usedVoucher);
+
+    const order = await voucherService.applyVoucher(voucher.code, amount)
+    expect(order).toEqual({
+      amount: amount,
+      discount: order.discount,
+      finalAmount: finalAmount,
+      applied: usedVoucher.used,
+    })
+  });
+
   it("should apply discount", async () => {
     const amount = 115;
     const voucher = {
